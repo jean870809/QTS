@@ -8,6 +8,16 @@ var company_name = [];
 var s_company = [];
 var data;
 
+$(function () { //tab
+    var $li = $('ul.tab-title li');
+    $($li.eq(0).addClass('active').find('a').attr('href')).siblings('.tab-inner').hide();
+
+    $li.click(function () {
+        $($(this).find('a').attr('href')).show().siblings('.tab-inner').hide();
+        $(this).addClass('active').siblings('.active').removeClass('active');
+
+    });
+});
 
 $(function () {
     countFunds();
@@ -31,11 +41,11 @@ function STOCK() {
     this.day = 0;
     this.Y = 0;
     this.y_line = [];
-    this.Y_line = function() {
+    this.Y_line = function () {
         this.Y = this.m * this.day + FUNDS;
         this.y_line.push(this.Y);
     };
-    this.init = function() {
+    this.init = function () {
         for (var j = 0; j < this.counter; j++) {
             this.fs[j] = [];
         }
@@ -210,18 +220,19 @@ function countFunds() {
         }
 
         //==============draw
-        var dataset = [];
+
+        var dataset = [];  //30檔資金水位
         for (var j = 0; j < COMPANYNUMBER; j++) {
             dataset.push({
                 label: stock[j].company_name,
                 lineTension: 0,
                 backgroundColor: getbgcolor(),
                 borderColor: getbdcolor(),
+                borderWidth: 2,
                 data: stock[j].totalMoney,
                 fill: false,
             });
         }
-
         dataset.push({
             label: "best : " + best_answer.company_name,
             lineTension: 0,
@@ -231,14 +242,13 @@ function countFunds() {
             data: best_answer.totalMoney,
             fill: false,
         });
-
         dataset.push({
             label: "趨勢線",
             lineTension: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.2)',
             borderColor: 'rgba(0, 0, 0, 1)',
             borderWidth: 5,
-            borderDash: [10, 5],
+            borderDash: [5, 5],
             data: best_answer.y_line,
             fill: false,
         });
@@ -247,10 +257,8 @@ function countFunds() {
             labels: day_label,
             datasets: dataset,
         }
-
-
         var ctx = document.getElementById('myChart');
-        var line_chart = new Chart(ctx, {
+        line_chart = new Chart(ctx, {
             type: 'line',
             data: lineChartData,
             options: {
@@ -271,8 +279,199 @@ function countFunds() {
                 },
             }
         });
+        stock = quickSort(stock);
+        stock.reverse();
+        var neg_stock = [];
+
+        for (var j = 0; j < COMPANYNUMBER; j++) {
+            if (stock[stock.length - 1].trend < 0) {
+                neg_stock.push(stock.pop());
+            }
+        }
+
+        neg_stock.reverse();
+
+        var dataset2 = [];  //趨勢值排序
+        for (var j = 0; j < stock.length; j++) {
+            dataset2.push({
+                label: stock[j].company_name,
+                backgroundColor: getbdcolor(),
+                borderColor: getbdcolor(),
+                borderWidth: 1,
+                data: [stock[j].trend],
+                yAxisID: 'y-axis-1',
+            });
+        }
+
+        for (var j = 0; j < neg_stock.length; j++) {
+            dataset2.push({
+                label: neg_stock[j].company_name,
+                backgroundColor: getbgcolor(),
+                borderColor: getbdcolor(),
+                borderWidth: 1,
+                data: [neg_stock[j].trend],
+                yAxisID: 'y-axis-2',
+            });
+        }
+
+        dataset2.push({
+            label: "best : " + best_answer.company_name,
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1,
+            data: [best_answer.trend],
+            yAxisID: 'y-axis-1',
+        });
+
+
+        var barChartData = {
+            datasets: dataset2,
+        };
+        var ctx1 = document.getElementById('myChart1');
+
+        bar_chart = new Chart(ctx1, {
+            type: 'bar',
+            data: barChartData,
+            options: {
+                responsive: true,
+                legend: {
+                    position: 'top',
+                },
+                scales: {
+                    xAxes: [{
+                        display: true
+                    }],
+                    yAxes: [{
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        ticks: {
+                            min: -3,
+                            max: 3,
+                        },
+                        id: 'y-axis-1',
+                    }, {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        ticks: {
+                            min: -1500000000,
+                            max: 1500000000,
+                        },
+                        id: 'y-axis-2',
+                        // grid line settings
+                        gridLines: {
+                            drawOnChartArea: false, // only want the grid lines for one axis to show up
+                        },
+                    }]
+                },
+
+            }
+        });
+
+        var dataset3 = []; //GNQTS
+
+        for (var j = 0; j < best_answer.counter; j++) {
+            dataset3.push({
+                label: company_name[best_answer.locate[j]],
+                lineTension: 0,
+                backgroundColor: getbgcolor(),
+                borderColor: getbdcolor(),
+                borderWidth: 2,
+                data: best_answer.fs[j],
+                fill: false,
+                yAxisID: 'y-axis-1',
+            });
+        }
+
+        dataset3.push({
+            label: "best : " + best_answer.company_name,
+            lineTension: 0.4,
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 5,
+            data: best_answer.totalMoney,
+            fill: false,
+            yAxisID: 'y-axis-2',
+        });
+
+        var bestLineChartData = {
+            labels: day_label,
+            datasets: dataset3,
+        }
+
+        dataset3.push({
+            label: "趨勢線",
+            lineTension: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+            borderColor: 'rgba(0, 0, 0, 1)',
+            borderWidth: 5,
+            borderDash: [5, 5],
+            data: best_answer.y_line,
+            fill: false,
+            yAxisID: 'y-axis-2',
+        });
+        var ctx2 = document.getElementById('myChart2');
+        var best_line_chart = new Chart(ctx2, {
+            type: 'line',
+            data: bestLineChartData,
+            options: {
+                responsive: true,
+                legend: {
+                    display: true,
+                },
+                tooltips: {
+                    enabled: true
+                },
+                scales: {
+                    xAxes: [{
+                        display: true
+                    }],
+                    yAxes: [{
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        id: 'y-axis-1',
+                    }, {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        id: 'y-axis-2',
+
+                        // grid line settings
+                        gridLines: {
+                            drawOnChartArea: false, // only want the grid lines for one axis to show up
+                        },
+                    }]
+                },
+
+            }
+        });
+
+
+
+
 
     });
+}
+
+function quickSort(arr) {
+    if (arr.length <= 1) {
+        return arr;
+    }
+
+    const less = [];
+    const greater = [];
+    const pivot = arr[arr.length - 1];
+    for (let i = 0; i < arr.length - 1; ++i) {
+        const num = arr[i];
+        if (num.trend < pivot.trend) {
+            less.push(num);
+        } else {
+            greater.push(num);
+        }
+    }
+    return [...quickSort(less), pivot, ...quickSort(greater)];
 }
 function getbgcolor() {
     var numone = parseInt(Math.random() * (255 + 1), 10);
@@ -287,6 +486,6 @@ function getbdcolor() {
     var numtwo = parseInt(Math.random() * (255 + 1), 10);
     var numthree = parseInt(Math.random() * (255 + 1), 10);
 
-    color = "rgba(" + numone + "," + numtwo + "," + numthree + ",0.5)";
+    color = "rgba(" + numone + "," + numtwo + "," + numthree + ",0.8)";
     return color;
 }

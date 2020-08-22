@@ -2,8 +2,9 @@
 <html>
 
 <head>
-    <title>Home</title>
+    <title>QTS</title>
     <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="index.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js"></script>
     <script type="text/javascript" src="jquery-3.5.1.js"></script>
@@ -12,8 +13,22 @@
 
 <body>
     <div class="main">
-        <p id="detail"></p>
-        <canvas id="myChart" width="40vh" height="20vh"></canvas>
+        <div id="tab-demo">
+            <ul class="tab-title">
+                <li><a href="#tab01">資金水位</a></li>
+                <li><a href="#tab02">趨勢值排序</a></li>
+                <li><a href="#tab03">GNQTS</a></li>
+            </ul>
+            <div id="tab01" class="tab-inner">
+                <canvas id="myChart" width="40vh" height="20vh"></canvas>
+            </div>
+            <div id="tab02" class="tab-inner">
+                <canvas id="myChart1" width="40vh" height="20vh"></canvas>
+            </div>
+            <div id="tab03" class="tab-inner">
+                <canvas id="myChart2" width="40vh" height="20vh"></canvas>
+            </div>
+        </div>
     </div>
 
 </body>
